@@ -30,13 +30,10 @@ void _avl_insere_node(tnode **parv, tnode *pai, titem item) {
         (*parv)->dir = NULL;
         (*parv)->h = 0;
     } else if (cmp((*parv)->item, item) > 0) {
-        printf("entrei 1\n");
         _avl_insere_node(&(*parv)->esq, *parv, item);
     } else if (cmp((*parv)->item, item) < 0) {
-        printf("entrei 2\n");
         _avl_insere_node(&(*parv)->dir, *parv, item);
     } else {
-        printf("entrei 3\n");
         _avl_insere_node(&(*parv)->item.prox, *parv, item);
         return;
     }
@@ -83,7 +80,6 @@ void _avl_rebalancear(tnode **parv) {
     fb = altura((*parv)->esq) - altura((*parv)->dir);
 
     if (fb == -2) {
-        printf("oxe \n");
         filho = (*parv)->dir;
         fbf = altura(filho->esq) - altura(filho->dir);
         if (fbf <= 0) { /* Caso 1  --> ->*/
@@ -93,7 +89,6 @@ void _avl_rebalancear(tnode **parv) {
             _re(parv);
         }
     } else if (fb == 2) {
-        printf("oxe \n");
         filho = (*parv)->esq;
         fbf = altura(filho->esq) - altura(filho->dir);
         if (fbf >= 0) { /* Caso 3  <-- <-*/
@@ -105,14 +100,22 @@ void _avl_rebalancear(tnode **parv) {
     }
 }
 
-tnode **percorre_esq(tnode **arv) {
-    tnode *aux = *arv;
-    if (aux->esq == NULL) {
-        return arv;
+tnode *sucessor(tnode *arv) {
+    tnode *aux = arv;
+    if (aux->dir == NULL) {
+        //  we need to go up until we find a parent that is a left child
+        while (aux != NULL && aux->pai != NULL && aux->pai->esq != aux) {
+            aux = aux->pai;
+        }
+
+        if (aux->pai == NULL)
+            return aux;
+        else
+            return aux->pai;
     } else {
-        while (aux->esq->esq != NULL)
-            aux = aux->esq;
-        return &(aux->esq);
+        while (aux->dir->esq != NULL)
+            aux = aux->dir;
+        return aux->dir;
     }
 }
 
@@ -161,8 +164,8 @@ tnode **percorre_esq(tnode **arv) {
 //         }
 //         if (*parv != NULL)
 //         {
-//             (*parv)->h = max(altura((*parv)->esq), altura((*parv)->dir)) + 1;
-//             _avl_rebalancear(parv);
+//             (*parv)->h = max(altura((*parv)->esq), altura((*parv)->dir))
+//             + 1; _avl_rebalancear(parv);
 //         }
 //     }
 // }

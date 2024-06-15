@@ -1,10 +1,11 @@
 #ifndef __AVL__
 #define __AVL__
+typedef struct _item {
+    void *reg;
+    struct _item *prox;
+} titem;
 
-typedef int titem;
-
-typedef struct _node
-{
+typedef struct _node {
     titem item;
     struct _node *pai;
     struct _node *esq;

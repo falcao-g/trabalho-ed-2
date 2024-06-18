@@ -17,32 +17,35 @@ int altura(tnode *arv) {
     return ret;
 }
 
-int cmp(titem a, titem b) {
-    return a.reg - b.reg;
+void avl_constroi(tarv *parv, double (*cmp)(void *, void *)) {
+    parv->raiz = NULL;
+    parv->cmp = cmp;
 }
 
-void _avl_insere_node(tnode **parv, tnode *pai, titem item) {
-    if (*parv == NULL) {
-        *parv = (tnode *)malloc(sizeof(tnode));
-        (*parv)->pai = pai;
-        (*parv)->item = item;
-        (*parv)->esq = NULL;
-        (*parv)->dir = NULL;
-        (*parv)->h = 0;
-    } else if (cmp((*parv)->item, item) > 0) {
-        _avl_insere_node(&(*parv)->esq, *parv, item);
-    } else if (cmp((*parv)->item, item) < 0) {
-        _avl_insere_node(&(*parv)->dir, *parv, item);
+void _avl_insere_node(tarv *parv, tnode **ppnode, tnode *pai, void *item) {
+    if (*ppnode == NULL) {
+        *ppnode = (tnode *)malloc(sizeof(tnode));
+        (*ppnode)->pai = pai;
+        (*ppnode)->item.reg = item;
+        (*ppnode)->item.prox = NULL;
+        (*ppnode)->esq = NULL;
+        (*ppnode)->dir = NULL;
+        (*ppnode)->h = 0;
+    } else if (parv->cmp((*ppnode)->item.reg, item) > 0) {
+        _avl_insere_node(parv, &(*ppnode)->esq, *ppnode, item);
+    } else if (parv->cmp((*ppnode)->item.reg, item) < 0) {
+        _avl_insere_node(parv, &(*ppnode)->dir, *ppnode, item);
     } else {
-        _avl_insere_node(&(*parv)->item.prox, *parv, item);
+        // maybe add a function just for this
+        _avl_insere_node(parv, &(*ppnode)->item.prox, *ppnode, item);
         return;
     }
-    (*parv)->h = max(altura((*parv)->esq), altura((*parv)->dir)) + 1;
-    _avl_rebalancear(parv);
+    (*ppnode)->h = max(altura((*ppnode)->esq), altura((*ppnode)->dir)) + 1;
+    _avl_rebalancear(ppnode);
 }
 
-void avl_insere(tnode **parv, titem item) {
-    _avl_insere_node(parv, NULL, item);
+void avl_insere(tarv *parv, void *item) {
+    _avl_insere_node(parv, &parv->raiz, NULL, item);
 }
 
 void _rd(tnode **parv) {
@@ -55,6 +58,13 @@ void _rd(tnode **parv) {
     y->esq = B;
     x->dir = y;
     *parv = x;
+
+    if (B != NULL) {
+        B->pai = y;
+    }
+    x->pai = y->pai;
+    y->pai = x;
+
     y->h = max(altura(B), altura(C)) + 1;
     x->h = max(altura(A), altura(y)) + 1;
 }
@@ -69,6 +79,13 @@ void _re(tnode **parv) {
     x->dir = B;
     y->esq = x;
     *parv = y;
+
+    if (B != NULL) {
+        B->pai = x;
+    }
+    y->pai = x->pai;
+    x->pai = y;
+
     x->h = max(altura(A), altura(B)) + 1;
     y->h = max(altura(x), altura(C)) + 1;
 }

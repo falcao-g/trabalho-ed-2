@@ -15,10 +15,11 @@ typedef struct _node {
 
 typedef struct {
     tnode *raiz;
-    double (*cmp)(void *, void *);
+    int type;
+    double (*cmp)(void *, void *, int);
 } tarv;
 
-void avl_constroi(tarv *parv, double (*cmp)(void *, void *));
+void avl_constroi(tarv *parv, int type, double (*cmp)(void *, void *, int));
 void avl_insere(tarv *parv, void *reg);
 void avl_remove(tnode **parv, titem reg);
 void avl_destroi(tnode *parv);

@@ -17,8 +17,9 @@ int altura(tnode *arv) {
     return ret;
 }
 
-void avl_constroi(tarv *parv, double (*cmp)(void *, void *)) {
+void avl_constroi(tarv *parv, int type, double (*cmp)(void *, void *, int)) {
     parv->raiz = NULL;
+    parv->type = type;
     parv->cmp = cmp;
 }
 
@@ -31,9 +32,9 @@ void _avl_insere_node(tarv *parv, tnode **ppnode, tnode *pai, void *item) {
         (*ppnode)->esq = NULL;
         (*ppnode)->dir = NULL;
         (*ppnode)->h = 0;
-    } else if (parv->cmp((*ppnode)->item.reg, item) > 0) {
+    } else if (parv->cmp((*ppnode)->item.reg, item, parv->type) > 0) {
         _avl_insere_node(parv, &(*ppnode)->esq, *ppnode, item);
-    } else if (parv->cmp((*ppnode)->item.reg, item) < 0) {
+    } else if (parv->cmp((*ppnode)->item.reg, item, parv->type) < 0) {
         _avl_insere_node(parv, &(*ppnode)->dir, *ppnode, item);
     } else {
         // maybe add a function just for this

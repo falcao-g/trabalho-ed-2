@@ -74,6 +74,33 @@ void leitor_json(FILE *arquivo, tarv *arv, tarv *arv2, tarv *arv3, tarv *arv4,
     }
 }
 
+tnode **query(tarv *parv, tnode **ppnode, void *min, void *max) {
+    int numOfNodes = 10;
+    int capacity = 0;
+    tnode **ret = malloc(sizeof(tnode *) * numOfNodes);
+    ppnode = avl_busca(parv, ppnode, min);
+
+    while (parv->cmp((*ppnode)->item.reg, min, parv->type) < 0) {
+        ppnode = sucessor(ppnode);
+    }
+
+    while (parv->cmp((*ppnode)->item.reg, max, parv->type) <= 0) {
+        if (capacity == numOfNodes) {
+            numOfNodes *= 2;
+            ret = realloc(ret, sizeof(tnode *) * numOfNodes);
+        }
+
+        if (parv->cmp((*ppnode)->item.reg, max, parv->type) <= 0) {
+            ret[capacity] = *ppnode;
+            capacity++;
+        }
+
+        ppnode = sucessor(ppnode);
+    }
+
+    return ret;
+}
+
 int main(void) {
     tarv arv;
     tarv arv2;
@@ -89,19 +116,31 @@ int main(void) {
     leitor_json(fopen("./data/municipios.json", "r"), &arv, &arv2, &arv3, &arv4,
                 &arv5);
 
-    printf("%s\n", ((tcidade *)arv.raiz->item.reg)->nome);
-    printf("%s\n", ((tcidade *)arv.raiz->dir->item.reg)->nome);
-    printf("%f\n", ((tcidade *)arv2.raiz->item.reg)->latitude);
-    printf("%f\n", ((tcidade *)arv2.raiz->dir->item.reg)->latitude);
-    printf("%f\n", ((tcidade *)arv3.raiz->item.reg)->longitude);
-    printf("%f\n", ((tcidade *)arv3.raiz->dir->item.reg)->longitude);
-    printf("%d\n", ((tcidade *)arv4.raiz->item.reg)->codigo_uf);
-    printf("%d\n", ((tcidade *)arv4.raiz->dir->item.reg)->codigo_uf);
-    printf("%d\n", ((tcidade *)arv5.raiz->item.reg)->ddd);
-    printf("%d\n", ((tcidade *)arv5.raiz->esq->item.reg)->ddd);
-    printf("%s\n", ((tcidade *)arv5.raiz->esq->esq->item.prox->prox->prox->prox
-                        ->prox->prox->prox->reg)
-                       ->codigo_ibge);
+    tcidade *cidade1 = (tcidade *)malloc(sizeof(tcidade));
+    strcpy(cidade1->nome, "Assis");
+    tcidade *cidade2 = (tcidade *)malloc(sizeof(tcidade));
+    strcpy(cidade2->nome, "Assis Chateaubriand");
+
+    tnode **busca = query(&arv, &arv.raiz, cidade1, cidade2);
+
+    int i = 0;
+    while (busca[i] != NULL) {
+        printf("%s\n", ((tcidade *)busca[i]->item.reg)->nome);
+        i++;
+    }
+
+    // tnode **busca_bet = sucessor(&busca);
+    // tnode **busca_bet2 = sucessor(busca_bet);
+
+    // printf("%d\n", ((tcidade *)(*busca_bet)->item.reg)->ddd);
+    // printf("%d\n", ((tcidade *)(*busca_bet2)->item.reg)->ddd);
+
+    // tnode *busca2 = avl_busca(&arv5, &arv5.raiz, cidade2);
+    // printf("%d\n", ((tcidade *)busca2->item.reg)->ddd);
+
+    //   tnode **busca = avl_busca_intervalo(&arv, &arv.raiz, cidade1,
+    //   cidade2);
+    //    printf("%s\n", ((tcidade *)(*busca)->item.reg)->ddd);
 
     return 0;
 }

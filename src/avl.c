@@ -118,23 +118,44 @@ void _avl_rebalancear(tnode **parv) {
     }
 }
 
-tnode *sucessor(tnode *arv) {
-    tnode *aux = arv;
-    if (aux->dir == NULL) {
-        //  we need to go up until we find a parent that is a left child
-        while (aux != NULL && aux->pai != NULL && aux->pai->esq != aux) {
-            aux = aux->pai;
+tnode **avl_busca(tarv *parv, tnode **ppnode, void *item) {
+    if (parv->cmp((*ppnode)->item.reg, item, parv->type) > 0) {
+        if ((*ppnode)->esq == NULL) {
+            return ppnode;
         }
-
-        if (aux->pai == NULL)
-            return aux;
-        else
-            return aux->pai;
+        return avl_busca(parv, &(*ppnode)->esq, item);
+    } else if (parv->cmp((*ppnode)->item.reg, item, parv->type) < 0) {
+        if ((*ppnode)->dir == NULL) {
+            return ppnode;
+        }
+        return avl_busca(parv, &(*ppnode)->dir, item);
     } else {
-        while (aux->dir->esq != NULL)
-            aux = aux->dir;
-        return aux->dir;
+        return ppnode;
     }
+}
+
+tnode **percorre_esq(tnode **arv) {
+    tnode *aux = *arv;
+    if (aux->esq == NULL) {
+        return arv;
+    } else {
+        while (aux->esq->esq != NULL)
+            aux = aux->esq;
+        return &(aux->esq);
+    }
+}
+
+tnode **sucessor(tnode **arv) {
+    if ((*arv)->dir != NULL) {
+        return percorre_esq(&(*arv)->dir);
+    }
+
+    tnode *pai = (*arv)->pai;
+    while (pai != NULL && *arv == pai->dir) {
+        *arv = pai;
+        pai = pai->pai;
+    }
+    return &(*arv)->pai;
 }
 
 // void avl_remove(tnode **parv, titem reg)

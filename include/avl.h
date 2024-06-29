@@ -21,10 +21,10 @@ typedef struct {
 
 void avl_constroi(tarv *parv, int type, double (*cmp)(void *, void *, int));
 void avl_insere(tarv *parv, void *reg);
-void avl_remove(tnode **parv, titem reg);
-tnode **avl_busca(tarv *parv, tnode **ppnode, void *item);
+tnode *avl_busca(tarv *parv, void *reg);
+tnode *avl_busca_node(tarv *parv, tnode *pnode, void *reg);
 void avl_destroi(tnode *parv);
-tnode **sucessor(tnode **arv);
+tnode *sucessor(tnode *arv);
 
 void _rd(tnode **pparv);
 void _re(tnode **pparv);

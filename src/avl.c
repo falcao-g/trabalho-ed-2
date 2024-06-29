@@ -118,96 +118,51 @@ void _avl_rebalancear(tnode **parv) {
     }
 }
 
-tnode **avl_busca(tarv *parv, tnode **ppnode, void *item) {
-    if (parv->cmp((*ppnode)->item.reg, item, parv->type) > 0) {
-        if ((*ppnode)->esq == NULL) {
-            return ppnode;
+tnode *avl_busca_node(tarv *parv, tnode *pnode, void *reg) {
+    if (parv->cmp(pnode->item.reg, reg, parv->type) > 0) { /* esquerda*/
+        if (pnode->esq == NULL) {
+            return pnode;
         }
-        return avl_busca(parv, &(*ppnode)->esq, item);
-    } else if (parv->cmp((*ppnode)->item.reg, item, parv->type) < 0) {
-        if ((*ppnode)->dir == NULL) {
-            return ppnode;
+
+        return avl_busca_node(parv, pnode->esq, reg);
+    } else if (parv->cmp(pnode->item.reg, reg, parv->type) < 0) { /*direita*/
+        if (pnode->dir == NULL) {
+            return pnode;
         }
-        return avl_busca(parv, &(*ppnode)->dir, item);
+
+        return avl_busca_node(parv, pnode->dir, reg);
     } else {
-        return ppnode;
+        return pnode;
     }
 }
 
-tnode **percorre_esq(tnode **arv) {
-    tnode *aux = *arv;
+tnode *avl_busca(tarv *parv, void *reg) {
+    return avl_busca_node(parv, parv->raiz, reg);
+}
+
+tnode *percorre_esq(tnode *arv) {
+    tnode *aux = arv;
     if (aux->esq == NULL) {
         return arv;
     } else {
         while (aux->esq->esq != NULL)
             aux = aux->esq;
-        return &(aux->esq);
+        return aux->esq;
     }
 }
 
-tnode **sucessor(tnode **arv) {
-    if ((*arv)->dir != NULL) {
-        return percorre_esq(&(*arv)->dir);
+tnode *sucessor(tnode *arv) {
+    if (arv->dir != NULL) {
+        return percorre_esq(arv->dir);
     }
 
-    tnode *pai = (*arv)->pai;
-    while (pai != NULL && *arv == pai->dir) {
-        *arv = pai;
+    tnode *pai = arv->pai;
+    while (pai != NULL && arv == pai->dir) {
+        arv = pai;
         pai = pai->pai;
     }
-    return &(*arv)->pai;
+    return pai;
 }
-
-// void avl_remove(tnode **parv, titem reg)
-// {
-//     int cmp;
-//     tnode *aux;
-//     tnode **sucessor;
-//     if (*parv != NULL)
-//     {
-//         cmp = (*parv)->item - reg;
-//         if (cmp > 0)
-//         { /* ir esquerda*/
-//             avl_remove(&((*parv)->esq), reg);
-//         }
-//         else if (cmp < 0)
-//         { /*ir direita*/
-//             avl_remove(&((*parv)->dir), reg);
-//         }
-//         else
-//         { /* ACHOU  */
-//             if ((*parv)->esq == NULL && (*parv)->dir == NULL)
-//             { /* no folha */
-//                 free(*parv);
-//                 *parv = NULL;
-//             }
-//             else if ((*parv)->esq == NULL || (*parv)->dir == NULL)
-//             { /* tem um filho*/
-//                 aux = *parv;
-//                 if ((*parv)->esq == NULL)
-//                 {
-//                     *parv = (*parv)->dir;
-//                 }
-//                 else
-//                 {
-//                     *parv = (*parv)->esq;
-//                 }
-//                 free(aux);
-//             }
-//             else
-//             { /* tem dois filhos */
-//                 sucessor = percorre_esq(&(*parv)->dir);
-//                 (*parv)->item = (*sucessor)->item;
-//                 avl_remove(&(*parv)->dir, (*sucessor)->item);
-//             }
-//         }
-//         if (*parv != NULL)
-//         {
-//             (*parv)->h = max(altura((*parv)->esq), altura((*parv)->dir))
-//             + 1; _avl_rebalancear(parv);
-//         }
-//     }
-// }
 
 void avl_destroi(tnode *parv) {
     if (parv != NULL) {

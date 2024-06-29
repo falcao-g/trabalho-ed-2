@@ -157,28 +157,28 @@ char **interseccao(char **a, char **b) {
     return ret;
 }
 
-char **query(tarv *parv, tnode **ppnode, void *min, void *max) {
+char **query(tarv *parv, void *min, void *max) {
     int numOfNodes = 10;
     int capacity = 0;
     char **ret = malloc(sizeof(char *) * numOfNodes);
-    ppnode = avl_busca(parv, ppnode, min);
+    tnode *ppnode = avl_busca(parv, min);
 
-    while (parv->cmp((*ppnode)->item.reg, min, parv->type) < 0) {
+    while (parv->cmp(ppnode->item.reg, min, parv->type) < 0) {
         ppnode = sucessor(ppnode);
     }
 
-    while (parv->cmp((*ppnode)->item.reg, max, parv->type) <= 0) {
+    while (parv->cmp(ppnode->item.reg, max, parv->type) <= 0) {
         if (capacity == numOfNodes) {
             numOfNodes *= 2;
             ret = realloc(ret, sizeof(char *) * numOfNodes);
         }
 
-        if (parv->cmp((*ppnode)->item.reg, max, parv->type) <= 0) {
-            ret[capacity] = ((tcidade *)(*ppnode)->item.reg)->codigo_ibge;
+        if (parv->cmp(ppnode->item.reg, max, parv->type) <= 0) {
+            ret[capacity] = ((tcidade *)ppnode->item.reg)->codigo_ibge;
             capacity++;
 
-            if ((*ppnode)->item.prox != NULL) {
-                titem *aux = (*ppnode)->item.prox;
+            if (ppnode->item.prox != NULL) {
+                titem *aux = ppnode->item.prox;
                 while (aux != NULL) {
                     ret[capacity] = ((tcidade *)aux->reg)->codigo_ibge;
                     capacity++;
@@ -216,21 +216,28 @@ int main(void) {
     leitor_json(fopen("./data/municipios.json", "r"), &arv, &arv2, &arv3, &arv4,
                 &arv5, hash_cod);
 
-    // tcidade *cidade1 = (tcidade *)malloc(sizeof(tcidade));
-    // strcpy(cidade1->nome, "AB");
-    // tcidade *cidade2 = (tcidade *)malloc(sizeof(tcidade));
-    // strcpy(cidade2->nome, "AC");
-
     tcidade *cidade1 = (tcidade *)malloc(sizeof(tcidade));
-    cidade1->longitude = -60;
+    // strcpy(cidade1->nome, "Assis");
+    cidade1->ddd = 18;
     tcidade *cidade2 = (tcidade *)malloc(sizeof(tcidade));
-    cidade2->longitude = -40;
+    // strcpy(cidade2->nome, "Assis Chateaubriand");
+    cidade2->ddd = 18;
 
-    char **busca = query(&arv3, &arv3.raiz, cidade1, cidade2);
+    char **busca = query(&arv5, cidade1, cidade2);
+
+    tnode *kok = avl_busca(&arv, cidade1);
+    printf("%s\n", ((tcidade *)kok->item.reg)->nome);
+
+    tnode *kok2 = avl_busca(&arv, cidade2);
+    printf("%s\n", ((tcidade *)kok2->item.reg)->nome);
+
+    char **busca2 = query(&arv5, cidade1, cidade2);
+
+    printf("%s\n", ((tcidade *)arv.raiz->item.reg)->nome);
 
     int i = 0;
-    while (busca[i] != NULL) {
-        tmunicipio *municipio = (tmunicipio *)hash_busca(hash_cod, busca[i]);
+    while (busca2[i] != NULL) {
+        tmunicipio *municipio = (tmunicipio *)hash_busca(hash_cod, busca2[i]);
         imprime_municipio(municipio);
         // printf("%s%s%s\n", ROXO, busca[i], PADRAO);
         i++;

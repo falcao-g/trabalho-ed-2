@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SEED 0x12345678
-
 uint32_t hashf(const char *str, uint32_t h) {
     /* One-byte-at-a-time Murmur hash
     Source: https://github.com/aappleby/smhasher/blob/master/src/Hashes.cpp */

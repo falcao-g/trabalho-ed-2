@@ -6,8 +6,7 @@
 #define PADRAO "\e[0m"
 
 #include "../include/avl.h"
-// why the include to the header file is not working?
-#include "../src/hash.c"
+#include "../include/hash.h"
 
 typedef struct {
     char codigo_ibge[10];

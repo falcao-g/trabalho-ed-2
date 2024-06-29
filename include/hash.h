@@ -1,6 +1,10 @@
 #ifndef __HASH__
 #define __HASH__
 
+#include <stdint.h>
+
+#define SEED 0x12345678
+
 typedef struct {
     uintptr_t *table;
     int size;

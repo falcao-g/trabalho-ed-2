@@ -139,7 +139,7 @@ char **interseccao(char **a, char **b) {
     char **ret = malloc(sizeof(char *) * capacity);
     while (a[i] != NULL) {
         while (b[j] != NULL) {
-            if (strcmp(a[i], b[j]) == 0) {
+            if (strcasecmp(a[i], b[j]) == 0) {
                 ret[k] = a[i];
                 numOfNodes++;
                 if (numOfNodes == capacity) {
@@ -203,11 +203,11 @@ int main(void) {
     tarv arv4;
     tarv arv5;
 
-    avl_constroi(&arv, 1, cmp);
-    avl_constroi(&arv2, 2, cmp);
-    avl_constroi(&arv3, 3, cmp);
-    avl_constroi(&arv4, 4, cmp);
-    avl_constroi(&arv5, 5, cmp);
+    avl_constroi(&arv, 1, cmp);   // avl de nome
+    avl_constroi(&arv2, 2, cmp);  // avl de latitude
+    avl_constroi(&arv3, 3, cmp);  // avl de longitude
+    avl_constroi(&arv4, 4, cmp);  // avl de codigo_uf
+    avl_constroi(&arv5, 5, cmp);  // avl de ddd
 
     thash hash_cod;
     hash_constroi(&hash_cod, 12040, pega_codigo);

@@ -26,6 +26,7 @@ tnode *avl_busca_node(tarv *parv, tnode *pnode, void *reg);
 void avl_destroi(tnode *parv);
 tnode *sucessor(tnode *arv);
 
+void _avl_insere_lista(titem *pitem, void *item);
 void _rd(tnode **pparv);
 void _re(tnode **pparv);
 void _avl_rebalancear(tnode **pparv);

@@ -23,6 +23,16 @@ void avl_constroi(tarv *parv, int type, double (*cmp)(void *, void *, int)) {
     parv->cmp = cmp;
 }
 
+void _avl_insere_lista(titem *pitem, void *item) {
+    if (pitem->prox == NULL) {
+        pitem->prox = (titem *)malloc(sizeof(titem));
+        pitem->prox->reg = item;
+        pitem->prox->prox = NULL;
+    } else {
+        _avl_insere_lista(pitem->prox, item);
+    }
+}
+
 void _avl_insere_node(tarv *parv, tnode **ppnode, tnode *pai, void *item) {
     if (*ppnode == NULL) {
         *ppnode = (tnode *)malloc(sizeof(tnode));
@@ -37,8 +47,8 @@ void _avl_insere_node(tarv *parv, tnode **ppnode, tnode *pai, void *item) {
     } else if (parv->cmp((*ppnode)->item.reg, item, parv->type) < 0) {
         _avl_insere_node(parv, &(*ppnode)->dir, *ppnode, item);
     } else {
-        // maybe add a function just for this
-        _avl_insere_node(parv, &(*ppnode)->item.prox, *ppnode, item);
+        // se achou o nó, insere na lista encadeada
+        _avl_insere_lista(&(*ppnode)->item, item);
         return;
     }
     (*ppnode)->h = max(altura((*ppnode)->esq), altura((*ppnode)->dir)) + 1;
@@ -100,18 +110,18 @@ void _avl_rebalancear(tnode **parv) {
     if (fb == -2) {
         filho = (*parv)->dir;
         fbf = altura(filho->esq) - altura(filho->dir);
-        if (fbf <= 0) { /* Caso 1  --> ->*/
+        if (fbf <= 0) {  // Caso 1  --> ->
             _re(parv);
-        } else { /* Caso 2  --> <-*/
+        } else {  // Caso 2  --> <-
             _rd(&(*parv)->dir);
             _re(parv);
         }
     } else if (fb == 2) {
         filho = (*parv)->esq;
         fbf = altura(filho->esq) - altura(filho->dir);
-        if (fbf >= 0) { /* Caso 3  <-- <-*/
+        if (fbf >= 0) {  // Caso 3  <-- <-
             _rd(parv);
-        } else { /* Caso 4  <-- ->*/
+        } else {  // Caso 4  <-- ->
             _re(&(*parv)->esq);
             _rd(parv);
         }
@@ -119,13 +129,13 @@ void _avl_rebalancear(tnode **parv) {
 }
 
 tnode *avl_busca_node(tarv *parv, tnode *pnode, void *reg) {
-    if (parv->cmp(pnode->item.reg, reg, parv->type) > 0) { /* esquerda*/
+    if (parv->cmp(pnode->item.reg, reg, parv->type) > 0) {
         if (pnode->esq == NULL) {
             return pnode;
         }
 
         return avl_busca_node(parv, pnode->esq, reg);
-    } else if (parv->cmp(pnode->item.reg, reg, parv->type) < 0) { /*direita*/
+    } else if (parv->cmp(pnode->item.reg, reg, parv->type) < 0) {
         if (pnode->dir == NULL) {
             return pnode;
         }

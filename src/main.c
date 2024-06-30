@@ -8,6 +8,7 @@
 #include "../include/avl.h"
 #include "../include/hash.h"
 
+// struct da hash
 typedef struct {
     char codigo_ibge[10];
     char nome[40];
@@ -20,6 +21,7 @@ typedef struct {
     char fuso_horario[40];
 } tmunicipio;
 
+// struct da avl (só preenchemos o que precisamos)
 typedef struct {
     char codigo_ibge[10];
     char nome[40];
@@ -33,6 +35,7 @@ char *pega_codigo(void *reg) {
     return ((tmunicipio *)reg)->codigo_ibge;
 }
 
+// usamos o tipo da avl para saber o que comparar
 double cmp(void *a, void *b, int type) {
     if (type == 1) {
         return strcasecmp(((tcidade *)a)->nome, ((tcidade *)b)->nome);
@@ -53,59 +56,52 @@ void insere_cidade(thash hash_cod, tmunicipio *municipio) {
     hash_insere(&hash_cod, municipio_aux);
 }
 
-// what a huge mess
 void leitor_json(FILE *arquivo, tarv *arv, tarv *arv2, tarv *arv3, tarv *arv4,
                  tarv *arv5, thash hash_cod) {
     char linha[150];
-    tcidade nome;
-    tcidade latitude;
-    tcidade longitude;
-    tcidade codigo_uf;
-    tcidade ddd;
     tmunicipio municipio;
     char codigo_ibge[10];
     while (fgets(linha, 150, arquivo)) {
+        tcidade *nome = malloc(sizeof(tcidade));
+        tcidade *latitude = malloc(sizeof(tcidade));
+        tcidade *longitude = malloc(sizeof(tcidade));
+        tcidade *codigo_uf = malloc(sizeof(tcidade));
+        tcidade *ddd = malloc(sizeof(tcidade));
+
+        // guardamos um municipio que armazena tudo e depois inserimos na hash
+        // para cada campo relevante as avl, copiamos o código ibge e aquele
+        // campo e inserimos na avl correspondente
         if (strstr(linha, "codigo_ibge")) {
             sscanf(linha, "    \"codigo_ibge\": %[^,],", municipio.codigo_ibge);
         } else if (strstr(linha, "nome")) {
             sscanf(linha, "    \"nome\": \"%[^\"]\",", municipio.nome);
-            strcpy(nome.codigo_ibge, municipio.codigo_ibge);
-            strcpy(nome.nome, municipio.nome);
-            tcidade *nome_cidade = (tcidade *)malloc(sizeof(tcidade));
-            memcpy(nome_cidade, &nome, sizeof(tcidade));
-            avl_insere(arv, nome_cidade);
+            strcpy(nome->codigo_ibge, municipio.codigo_ibge);
+            strcpy(nome->nome, municipio.nome);
+            avl_insere(arv, nome);
         } else if (strstr(linha, "latitude")) {
             sscanf(linha, "    \"latitude\": %f,", &municipio.latitude);
-            strcpy(latitude.codigo_ibge, municipio.codigo_ibge);
-            latitude.latitude = municipio.latitude;
-            tcidade *latitude_cidade = (tcidade *)malloc(sizeof(tcidade));
-            memcpy(latitude_cidade, &latitude, sizeof(tcidade));
-            avl_insere(arv2, latitude_cidade);
+            strcpy(latitude->codigo_ibge, municipio.codigo_ibge);
+            latitude->latitude = municipio.latitude;
+            avl_insere(arv2, latitude);
         } else if (strstr(linha, "longitude")) {
             sscanf(linha, "    \"longitude\": %f,", &municipio.longitude);
-            strcpy(longitude.codigo_ibge, municipio.codigo_ibge);
-            longitude.longitude = municipio.longitude;
-            tcidade *longitude_cidade = (tcidade *)malloc(sizeof(tcidade));
-            memcpy(longitude_cidade, &longitude, sizeof(tcidade));
-            avl_insere(arv3, longitude_cidade);
+            strcpy(longitude->codigo_ibge, municipio.codigo_ibge);
+            longitude->longitude = municipio.longitude;
+            avl_insere(arv3, longitude);
         } else if (strstr(linha, "capital")) {
-            // sscanf(linha, "    \"capital\": %d,", &municipio.capital);
+            sscanf(linha, "    \"capital\": %d,", &municipio.capital);
         } else if (strstr(linha, "codigo_uf")) {
             sscanf(linha, "    \"codigo_uf\": %d,", &municipio.codigo_uf);
-            strcpy(codigo_uf.codigo_ibge, municipio.codigo_ibge);
-            codigo_uf.codigo_uf = municipio.codigo_uf;
-            tcidade *codigo_uf_cidade = (tcidade *)malloc(sizeof(tcidade));
-            memcpy(codigo_uf_cidade, &codigo_uf, sizeof(tcidade));
-            avl_insere(arv4, codigo_uf_cidade);
+            strcpy(codigo_uf->codigo_ibge, municipio.codigo_ibge);
+            codigo_uf->codigo_uf = municipio.codigo_uf;
+            avl_insere(arv4, codigo_uf);
         } else if (strstr(linha, "siafi_id")) {
-            // sscanf(linha, "    \"siafi_id\": %d,", &municipio.siafi_id);
+            sscanf(linha, "    \"siafi_id\": %d,", &municipio.siafi_id);
         } else if (strstr(linha, "ddd")) {
             sscanf(linha, "    \"ddd\": %d,", &municipio.ddd);
-            strcpy(ddd.codigo_ibge, municipio.codigo_ibge);
-            ddd.ddd = municipio.ddd;
-            tcidade *ddd_cidade = (tcidade *)malloc(sizeof(tcidade));
-            memcpy(ddd_cidade, &ddd, sizeof(tcidade));
-            avl_insere(arv5, ddd_cidade);
+            strcpy(ddd->codigo_ibge, municipio.codigo_ibge);
+            ddd->ddd = municipio.ddd;
+            avl_insere(arv5, ddd);
         } else if (strstr(linha, "fuso_horario")) {
             sscanf(linha, "    \"fuso_horario\": \"%[^\"]\",",
                    municipio.fuso_horario);
@@ -114,22 +110,33 @@ void leitor_json(FILE *arquivo, tarv *arv, tarv *arv2, tarv *arv3, tarv *arv4,
     }
 }
 
-void imprime_municipio(tmunicipio *municipio) {
-    if (municipio == NULL) {
-        printf("Cidade não encontrada\n");
+void imprime_tabela_municipios(char **cods, int n, thash hash_cod) {
+    if (cods == NULL || n <= 0) {
+        printf("Nenhuma cidade encontrada\n");
         return;
     }
-    printf("%sCódigo IBGE: %s%s\n", ROXO, PADRAO, municipio->codigo_ibge);
-    printf("%sNome: %s%s\n", ROXO, PADRAO, municipio->nome);
-    printf("%sLatitude: %s%f\n", ROXO, PADRAO, municipio->latitude);
-    printf("%sLongitude: %s%f\n", ROXO, PADRAO, municipio->longitude);
-    printf("%sCapital: %s%d\n", ROXO, PADRAO, municipio->capital);
-    printf("%sCódigo UF: %s%d\n", ROXO, PADRAO, municipio->codigo_uf);
-    printf("%sSiafi ID: %s%d\n", ROXO, PADRAO, municipio->siafi_id);
-    printf("%sDDD: %s%d\n", ROXO, PADRAO, municipio->ddd);
-    printf("%sFuso Horário: %s%s\n", ROXO, PADRAO, municipio->fuso_horario);
+
+    // cabeçalho da tabela
+    printf("%s%-8s | %-25s | %-9s | %-9s | %-7s | %-6s | %-8s | %-3s | "
+           "%-15s\n%s",
+           ROXO, "Cod IBGE", "Nome", "Latitude", "Longitude", "Capital",
+           "Cod UF", "Siafi ID", "DDD", "Fuso Horário", PADRAO);
+    printf("-------------------------------------------------------------------"
+           "---------------------------------------------\n");
+
+    // linhas da tabela
+    for (int i = 0; i < n; i++) {
+        tmunicipio *municipio = (tmunicipio *)hash_busca(hash_cod, cods[i]);
+
+        printf("%-8s | %-25s | %-9.4f | %-9.4f | %-7d | %-6d | %-8d | %-3d | "
+               "%-15s\n",
+               municipio->codigo_ibge, municipio->nome, municipio->latitude,
+               municipio->longitude, municipio->capital, municipio->codigo_uf,
+               municipio->siafi_id, municipio->ddd, municipio->fuso_horario);
+    }
 }
 
+// comparamos as listas de códigos ibges em pares
 char **interseccao(char **a, char **b) {
     if (a == NULL) {
         return b;
@@ -138,12 +145,12 @@ char **interseccao(char **a, char **b) {
     }
 
     int i = 0;
-    int j = 0;
     int k = 0;
     int numOfNodes = 0;
     int capacity = 10;
     char **ret = malloc(sizeof(char *) * capacity);
     while (a[i] != NULL) {
+        int j = 0;
         while (b[j] != NULL) {
             if (strcasecmp(a[i], b[j]) == 0) {
                 ret[k] = a[i];
@@ -167,10 +174,12 @@ char **query(tarv *parv, void *min, void *max) {
     char **ret = malloc(sizeof(char *) * numOfNodes);
     tnode *ppnode = avl_busca(parv, min);
 
+    // se achamos um nó menor do que o que queremos, vamos para o próximo
     while (parv->cmp(ppnode->item.reg, min, parv->type) < 0) {
         ppnode = sucessor(ppnode);
     }
 
+    // chamamos o sucessor até que o nó seja maior do que o que queremos
     while (parv->cmp(ppnode->item.reg, max, parv->type) <= 0) {
         if (capacity == numOfNodes) {
             numOfNodes *= 2;
@@ -196,30 +205,34 @@ char **query(tarv *parv, void *min, void *max) {
         }
 
         ppnode = sucessor(ppnode);
+        if (ppnode == NULL) {
+            break;
+        }
     }
 
     return ret;
 }
 
 int main(void) {
-    tarv arv;
-    tarv arv2;
-    tarv arv3;
-    tarv arv4;
-    tarv arv5;
+    tarv avl_nome;
+    tarv avl_lat;
+    tarv avl_long;
+    tarv avl_uf;
+    tarv avl_ddd;
 
-    avl_constroi(&arv, 1, cmp);   // avl de nome
-    avl_constroi(&arv2, 2, cmp);  // avl de latitude
-    avl_constroi(&arv3, 3, cmp);  // avl de longitude
-    avl_constroi(&arv4, 4, cmp);  // avl de codigo_uf
-    avl_constroi(&arv5, 5, cmp);  // avl de ddd
+    avl_constroi(&avl_nome, 1, cmp);  // avl de nome
+    avl_constroi(&avl_lat, 2, cmp);   // avl de latitude
+    avl_constroi(&avl_long, 3, cmp);  // avl de longitude
+    avl_constroi(&avl_uf, 4, cmp);    // avl de codigo_uf
+    avl_constroi(&avl_ddd, 5, cmp);   // avl de ddd
 
     thash hash_cod;
     hash_constroi(&hash_cod, 12040, pega_codigo);
 
-    leitor_json(fopen("./data/municipios.json", "r"), &arv, &arv2, &arv3, &arv4,
-                &arv5, hash_cod);
+    leitor_json(fopen("./data/municipios.json", "r"), &avl_nome, &avl_lat,
+                &avl_long, &avl_uf, &avl_ddd, hash_cod);
 
+    // variáveis para a interface
     int qtde_nome = 0;
     int qtde_lat = 0;
     int qtde_long = 0;
@@ -243,179 +256,177 @@ int main(void) {
         printf("----------------------------\n");
         printf("(1) NOME (2) LATITUDE (3) LONGITUDE (4) CODIGO UF (5) DDD (6) "
                "LIMPAR BUSCA (7) LISTAR CIDADES (0) SAIR\n");
-        printf("Escolha o que você deseja editar ou adicionar:\n");
+        printf("Escolha uma opção: \n");
         int opcao;
         scanf("%d", &opcao);
 
+        int i = 0;
         switch (opcao) {
             case 1:
                 printf("--------------------\n");
-                char nome1[40];
-                char nome2[40];
-                printf("Digite a primeira string para a query de nome: ");
-                scanf(" %[^\n]s", nome1);
-                printf("Digite a segunda string para a query de nome: ");
-                scanf(" %[^\n]s", nome2);
-                tcidade *cidade1 = (tcidade *)malloc(sizeof(tcidade));
-                strcpy(cidade1->nome, nome1);
-                tcidade *cidade2 = (tcidade *)malloc(sizeof(tcidade));
-                strcpy(cidade2->nome, nome2);
-                busca_nome = query(&arv, cidade1, cidade2);
-                int i = 0;
-                qtde_nome = 0;
+                char nome_min[40];
+                char nome_max[40];
+                printf("Digite a menor palavra para a busca por nome: ");
+                scanf(" %[^\n]s", nome_min);
+                printf("Digite a maior palavra para a busca por nome: ");
+                scanf(" %[^\n]s", nome_max);
 
+                tcidade *cidade_nome_min = (tcidade *)malloc(sizeof(tcidade));
+                strcpy(cidade_nome_min->nome, nome_min);
+                tcidade *cidade_nome_max = (tcidade *)malloc(sizeof(tcidade));
+                strcpy(cidade_nome_max->nome, nome_max);
+                busca_nome = query(&avl_nome, cidade_nome_min, cidade_nome_max);
+
+                qtde_nome = 0;
                 while (busca_nome[i] != NULL) {
                     qtde_nome += 1;
                     i++;
                 }
-
                 break;
 
             case 2:
                 printf("--------------------\n");
-                float lat1;
-                float lat2;
-                printf("Digite a primeira latitude para a query de latitude: ");
-                scanf("%f", &lat1);
-                printf("Digite a segunda latitude para a query de latitude: ");
-                scanf("%f", &lat2);
-                tcidade *cidade3 = (tcidade *)malloc(sizeof(tcidade));
-                cidade3->latitude = lat1;
-                tcidade *cidade4 = (tcidade *)malloc(sizeof(tcidade));
-                cidade4->latitude = lat2;
-                busca_lat = query(&arv2, cidade3, cidade4);
-                int j = 0;
+                float lat_min;
+                float lat_max;
+                printf("Digite a menor latitude para a busca por latitude: ");
+                scanf("%f", &lat_min);
+                printf("Digite a maior latitude para a busca por latitude: ");
+                scanf("%f", &lat_max);
+
+                tcidade *cidade_lat_min = (tcidade *)malloc(sizeof(tcidade));
+                cidade_lat_min->latitude = lat_min;
+                tcidade *cidade_lat_max = (tcidade *)malloc(sizeof(tcidade));
+                cidade_lat_max->latitude = lat_max;
+                busca_lat = query(&avl_lat, cidade_lat_min, cidade_lat_max);
+
                 qtde_lat = 0;
-
-                while (busca_lat[j] != NULL) {
+                while (busca_lat[i] != NULL) {
                     qtde_lat += 1;
-                    j++;
+                    i++;
                 }
-
                 break;
 
             case 3:
                 printf("--------------------\n");
-                float long1;
-                float long2;
-                printf(
-                    "Digite a primeira longitude para a query de longitude: ");
-                scanf("%f", &long1);
-                printf(
-                    "Digite a segunda longitude para a query de longitude: ");
-                scanf("%f", &long2);
-                tcidade *cidade5 = (tcidade *)malloc(sizeof(tcidade));
-                cidade5->longitude = long1;
-                tcidade *cidade6 = (tcidade *)malloc(sizeof(tcidade));
-                cidade6->longitude = long2;
-                busca_long = query(&arv3, cidade5, cidade6);
-                int k = 0;
+                float long_min;
+                float long_max;
+                printf("Digite a menor longitude para a busca por longitude: ");
+                scanf("%f", &long_min);
+                printf("Digite a maior longitude para a busca por longitude: ");
+                scanf("%f", &long_max);
+
+                tcidade *cidade_long_min = (tcidade *)malloc(sizeof(tcidade));
+                cidade_long_min->longitude = long_min;
+                tcidade *cidade_long_max = (tcidade *)malloc(sizeof(tcidade));
+                cidade_long_max->longitude = long_max;
+                busca_long = query(&avl_long, cidade_long_min, cidade_long_max);
+
                 qtde_long = 0;
-
-                while (busca_long[k] != NULL) {
+                while (busca_long[i] != NULL) {
                     qtde_long += 1;
-                    k++;
+                    i++;
                 }
-
                 break;
 
             case 4:
                 printf("--------------------\n");
-                int uf1;
-                int uf2;
-                printf("Digite o primeiro código de UF para a query de codigo "
-                       "de UF: ");
-                scanf("%d", &uf1);
-                printf(
-                    "Digite o segundo código de UF para a query de codigo de "
-                    "UF: ");
-                scanf("%d", &uf2);
-                tcidade *cidade7 = (tcidade *)malloc(sizeof(tcidade));
-                cidade7->codigo_uf = uf1;
-                tcidade *cidade8 = (tcidade *)malloc(sizeof(tcidade));
-                cidade8->codigo_uf = uf2;
-                busca_uf = query(&arv4, cidade7, cidade8);
-                int l = 0;
+                int uf_min;
+                int uf_max;
+                printf("Digite o menor código UF para a busca por código "
+                       "UF: ");
+                scanf("%d", &uf_min);
+                printf("Digite o maior código UF para a busca por código "
+                       "UF: ");
+                scanf("%d", &uf_max);
+
+                tcidade *cidade_uf_min = (tcidade *)malloc(sizeof(tcidade));
+                cidade_uf_min->codigo_uf = uf_min;
+                tcidade *cidade_uf_max = (tcidade *)malloc(sizeof(tcidade));
+                cidade_uf_max->codigo_uf = uf_max;
+                busca_uf = query(&avl_uf, cidade_uf_min, cidade_uf_max);
+
                 qtde_uf = 0;
-
-                while (busca_uf[l] != NULL) {
+                while (busca_uf[i] != NULL) {
                     qtde_uf += 1;
-                    l++;
+                    i++;
                 }
-
                 break;
 
             case 5:
                 printf("--------------------\n");
-                int ddd1;
-                int ddd2;
-                printf("Digite o primeiro DDD para a query de DDD: ");
-                scanf("%d", &ddd1);
-                printf("Digite o segundo DDD para a query de DDD: ");
-                scanf("%d", &ddd2);
-                tcidade *cidade9 = (tcidade *)malloc(sizeof(tcidade));
-                cidade9->ddd = ddd1;
-                tcidade *cidade10 = (tcidade *)malloc(sizeof(tcidade));
-                cidade10->ddd = ddd2;
-                busca_ddd = query(&arv5, cidade9, cidade10);
-                int m = 0;
+                int ddd_min;
+                int ddd_max;
+                printf("Digite o menor DDD para a busca por DDD: ");
+                scanf("%d", &ddd_min);
+                printf("Digite o maior DDD para a busca por DDD: ");
+                scanf("%d", &ddd_max);
+
+                tcidade *cidade_ddd_min = (tcidade *)malloc(sizeof(tcidade));
+                cidade_ddd_min->ddd = ddd_min;
+                tcidade *cidade_ddd_max = (tcidade *)malloc(sizeof(tcidade));
+                cidade_ddd_max->ddd = ddd_max;
+                busca_ddd = query(&avl_ddd, cidade_ddd_min, cidade_ddd_max);
+
                 qtde_ddd = 0;
-
-                while (busca_ddd[m] != NULL) {
+                while (busca_ddd[i] != NULL) {
                     qtde_ddd += 1;
-                    m++;
+                    i++;
                 }
-
                 break;
 
             case 6:
                 printf("--------------------\n");
-                printf("Qual query deseja desativar?\n");
                 printf("1 - Nome\n");
                 printf("2 - Latitude\n");
                 printf("3 - Longitude\n");
                 printf("4 - Código UF\n");
                 printf("5 - DDD\n");
+                printf("Qual busca você deseja desativar?\n");
+
                 int desativa;
                 scanf("%d", &desativa);
+
+                while (desativa < 1 || desativa > 5) {
+                    printf("Digite um número entre 1 e 5\n");
+                    scanf("%d", &desativa);
+                }
+
                 if (desativa == 1) {
                     qtde_nome = 0;
+                    busca_nome = NULL;
                 } else if (desativa == 2) {
                     qtde_lat = 0;
+                    busca_lat = NULL;
                 } else if (desativa == 3) {
                     qtde_long = 0;
+                    busca_long = NULL;
                 } else if (desativa == 4) {
                     qtde_uf = 0;
+                    busca_uf = NULL;
                 } else if (desativa == 5) {
                     qtde_ddd = 0;
+                    busca_ddd = NULL;
                 }
                 break;
 
             case 7:
                 printf("--------------------\n");
-                int n = 0;
-                printf("Intersecção das queries:\n");
+                printf("Intersecção das buscas:\n");
 
-                if (intersec != NULL) {
-                    while (intersec[n] != NULL) {
-                        tmunicipio *municipio =
-                            (tmunicipio *)hash_busca(hash_cod, intersec[n]);
-                        imprime_municipio(municipio);
-                        n++;
-                    }
-                }
+                imprime_tabela_municipios(intersec, qtde_total, hash_cod);
                 break;
 
             default:
                 hash_apaga(&hash_cod);
-                avl_destroi(arv.raiz);
-                avl_destroi(arv2.raiz);
-                avl_destroi(arv3.raiz);
-                avl_destroi(arv4.raiz);
-                avl_destroi(arv5.raiz);
+                avl_destroi(avl_nome.raiz);
+                avl_destroi(avl_lat.raiz);
+                avl_destroi(avl_long.raiz);
+                avl_destroi(avl_uf.raiz);
+                avl_destroi(avl_ddd.raiz);
                 exit(0);
                 break;
         }
+
         intersec = interseccao(busca_nome, busca_lat);
         intersec = interseccao(intersec, busca_long);
         intersec = interseccao(intersec, busca_uf);

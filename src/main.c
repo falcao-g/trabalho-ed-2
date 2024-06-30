@@ -56,8 +56,8 @@ void insere_cidade(thash hash_cod, tmunicipio *municipio) {
     hash_insere(&hash_cod, municipio_aux);
 }
 
-void leitor_json(FILE *arquivo, tarv *arv, tarv *arv2, tarv *arv3, tarv *arv4,
-                 tarv *arv5, thash hash_cod) {
+void leitor_json(FILE *arquivo, tarv *avl_nome, tarv *avl_lat, tarv *avl_long,
+                 tarv *avl_uf, tarv *avl_ddd, thash hash_cod) {
     char linha[150];
     tmunicipio municipio;
     char codigo_ibge[10];
@@ -77,31 +77,31 @@ void leitor_json(FILE *arquivo, tarv *arv, tarv *arv2, tarv *arv3, tarv *arv4,
             sscanf(linha, "    \"nome\": \"%[^\"]\",", municipio.nome);
             strcpy(nome->codigo_ibge, municipio.codigo_ibge);
             strcpy(nome->nome, municipio.nome);
-            avl_insere(arv, nome);
+            avl_insere(avl_nome, nome);
         } else if (strstr(linha, "latitude")) {
             sscanf(linha, "    \"latitude\": %f,", &municipio.latitude);
             strcpy(latitude->codigo_ibge, municipio.codigo_ibge);
             latitude->latitude = municipio.latitude;
-            avl_insere(arv2, latitude);
+            avl_insere(avl_lat, latitude);
         } else if (strstr(linha, "longitude")) {
             sscanf(linha, "    \"longitude\": %f,", &municipio.longitude);
             strcpy(longitude->codigo_ibge, municipio.codigo_ibge);
             longitude->longitude = municipio.longitude;
-            avl_insere(arv3, longitude);
+            avl_insere(avl_long, longitude);
         } else if (strstr(linha, "capital")) {
             sscanf(linha, "    \"capital\": %d,", &municipio.capital);
         } else if (strstr(linha, "codigo_uf")) {
             sscanf(linha, "    \"codigo_uf\": %d,", &municipio.codigo_uf);
             strcpy(codigo_uf->codigo_ibge, municipio.codigo_ibge);
             codigo_uf->codigo_uf = municipio.codigo_uf;
-            avl_insere(arv4, codigo_uf);
+            avl_insere(avl_uf, codigo_uf);
         } else if (strstr(linha, "siafi_id")) {
             sscanf(linha, "    \"siafi_id\": %d,", &municipio.siafi_id);
         } else if (strstr(linha, "ddd")) {
             sscanf(linha, "    \"ddd\": %d,", &municipio.ddd);
             strcpy(ddd->codigo_ibge, municipio.codigo_ibge);
             ddd->ddd = municipio.ddd;
-            avl_insere(arv5, ddd);
+            avl_insere(avl_ddd, ddd);
         } else if (strstr(linha, "fuso_horario")) {
             sscanf(linha, "    \"fuso_horario\": \"%[^\"]\",",
                    municipio.fuso_horario);
@@ -169,43 +169,43 @@ char **interseccao(char **a, char **b) {
 }
 
 char **query(tarv *parv, void *min, void *max) {
-    int numOfNodes = 10;
-    int capacity = 0;
-    char **ret = malloc(sizeof(char *) * numOfNodes);
-    tnode *ppnode = avl_busca(parv, min);
+    int capacity = 10;
+    int numOfNodes = 0;
+    char **ret = malloc(sizeof(char *) * capacity);
+    tnode *pnode = avl_busca(parv, min);
 
     // se achamos um nó menor do que o que queremos, vamos para o próximo
-    while (parv->cmp(ppnode->item.reg, min, parv->type) < 0) {
-        ppnode = sucessor(ppnode);
+    while (parv->cmp(pnode->item.reg, min, parv->type) < 0) {
+        pnode = sucessor(pnode);
     }
 
     // chamamos o sucessor até que o nó seja maior do que o que queremos
-    while (parv->cmp(ppnode->item.reg, max, parv->type) <= 0) {
+    while (parv->cmp(pnode->item.reg, max, parv->type) <= 0) {
         if (capacity == numOfNodes) {
-            numOfNodes *= 2;
-            ret = realloc(ret, sizeof(char *) * numOfNodes);
+            capacity *= 2;
+            ret = realloc(ret, sizeof(char *) * capacity);
         }
 
-        if (parv->cmp(ppnode->item.reg, max, parv->type) <= 0) {
-            ret[capacity] = ((tcidade *)ppnode->item.reg)->codigo_ibge;
-            capacity++;
+        if (parv->cmp(pnode->item.reg, max, parv->type) <= 0) {
+            ret[numOfNodes] = ((tcidade *)pnode->item.reg)->codigo_ibge;
+            numOfNodes++;
 
-            if (ppnode->item.prox != NULL) {
-                titem *aux = ppnode->item.prox;
+            if (pnode->item.prox != NULL) {
+                titem *aux = pnode->item.prox;
                 while (aux != NULL) {
-                    ret[capacity] = ((tcidade *)aux->reg)->codigo_ibge;
-                    capacity++;
+                    ret[numOfNodes] = ((tcidade *)aux->reg)->codigo_ibge;
+                    numOfNodes++;
                     if (capacity == numOfNodes) {
-                        numOfNodes *= 2;
-                        ret = realloc(ret, sizeof(char *) * numOfNodes);
+                        capacity *= 2;
+                        ret = realloc(ret, sizeof(char *) * capacity);
                     }
                     aux = aux->prox;
                 }
             }
         }
 
-        ppnode = sucessor(ppnode);
-        if (ppnode == NULL) {
+        pnode = sucessor(pnode);
+        if (pnode == NULL) {
             break;
         }
     }

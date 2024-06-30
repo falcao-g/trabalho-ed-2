@@ -23,13 +23,13 @@ void avl_constroi(tarv *parv, int type, double (*cmp)(void *, void *, int));
 void avl_insere(tarv *parv, void *reg);
 tnode *avl_busca(tarv *parv, void *reg);
 tnode *avl_busca_node(tarv *parv, tnode *pnode, void *reg);
-void avl_destroi(tnode *parv);
-tnode *sucessor(tnode *arv);
+void avl_destroi(tnode *pnode);
+tnode *sucessor(tnode *pnode);
 
 void _avl_insere_lista(titem *pitem, void *item);
-void _rd(tnode **pparv);
-void _re(tnode **pparv);
-void _avl_rebalancear(tnode **pparv);
+void _rd(tnode **ppnode);
+void _re(tnode **ppnode);
+void _avl_rebalancear(tnode **ppnode);
 void _avl_insere_node(tarv *parv, tnode **ppnode, tnode *pai, void *reg);
 
 #endif

@@ -59,8 +59,8 @@ void avl_insere(tarv *parv, void *item) {
     _avl_insere_node(parv, &parv->raiz, NULL, item);
 }
 
-void _rd(tnode **parv) {
-    tnode *y = *parv;
+void _rd(tnode **ppnode) {
+    tnode *y = *ppnode;
     tnode *x = y->esq;
     tnode *A = x->esq;
     tnode *B = x->dir;
@@ -68,7 +68,7 @@ void _rd(tnode **parv) {
 
     y->esq = B;
     x->dir = y;
-    *parv = x;
+    *ppnode = x;
 
     if (B != NULL) {
         B->pai = y;
@@ -80,8 +80,8 @@ void _rd(tnode **parv) {
     x->h = max(altura(A), altura(y)) + 1;
 }
 
-void _re(tnode **parv) {
-    tnode *x = *parv;
+void _re(tnode **ppnode) {
+    tnode *x = *ppnode;
     tnode *y = x->dir;
     tnode *A = x->esq;
     tnode *B = y->esq;
@@ -89,7 +89,7 @@ void _re(tnode **parv) {
 
     x->dir = B;
     y->esq = x;
-    *parv = y;
+    *ppnode = y;
 
     if (B != NULL) {
         B->pai = x;
@@ -101,29 +101,29 @@ void _re(tnode **parv) {
     y->h = max(altura(x), altura(C)) + 1;
 }
 
-void _avl_rebalancear(tnode **parv) {
+void _avl_rebalancear(tnode **ppnode) {
     int fb;
     int fbf;
     tnode *filho;
-    fb = altura((*parv)->esq) - altura((*parv)->dir);
+    fb = altura((*ppnode)->esq) - altura((*ppnode)->dir);
 
     if (fb == -2) {
-        filho = (*parv)->dir;
+        filho = (*ppnode)->dir;
         fbf = altura(filho->esq) - altura(filho->dir);
         if (fbf <= 0) {  // Caso 1  --> ->
-            _re(parv);
+            _re(ppnode);
         } else {  // Caso 2  --> <-
-            _rd(&(*parv)->dir);
-            _re(parv);
+            _rd(&(*ppnode)->dir);
+            _re(ppnode);
         }
     } else if (fb == 2) {
-        filho = (*parv)->esq;
+        filho = (*ppnode)->esq;
         fbf = altura(filho->esq) - altura(filho->dir);
         if (fbf >= 0) {  // Caso 3  <-- <-
-            _rd(parv);
+            _rd(ppnode);
         } else {  // Caso 4  <-- ->
-            _re(&(*parv)->esq);
-            _rd(parv);
+            _re(&(*ppnode)->esq);
+            _rd(ppnode);
         }
     }
 }
@@ -174,10 +174,10 @@ tnode *sucessor(tnode *arv) {
     return pai;
 }
 
-void avl_destroi(tnode *parv) {
-    if (parv != NULL) {
-        avl_destroi(parv->esq);
-        avl_destroi(parv->dir);
-        free(parv);
+void avl_destroi(tnode *pnode) {
+    if (pnode != NULL) {
+        avl_destroi(pnode->esq);
+        avl_destroi(pnode->dir);
+        free(pnode);
     }
 }

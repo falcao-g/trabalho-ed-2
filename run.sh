@@ -1,6 +1,6 @@
 echo "Compilando o programa..."
 
-gcc -pedantic -g ./src/main.c ./src/avl.c ./include/avl.h ./src/hash.c ./include/hash.h -lm
+gcc -g ./src/main.c ./src/avl.c ./include/avl.h ./src/hash.c ./include/hash.h -lm
 
 echo "Executando o programa..."
 

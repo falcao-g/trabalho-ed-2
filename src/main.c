@@ -186,21 +186,19 @@ char **query(tarv *parv, void *min, void *max) {
             ret = realloc(ret, sizeof(char *) * capacity);
         }
 
-        if (parv->cmp(pnode->item.reg, max, parv->type) <= 0) {
-            ret[numOfNodes] = ((tcidade *)pnode->item.reg)->codigo_ibge;
-            numOfNodes++;
+        ret[numOfNodes] = ((tcidade *)pnode->item.reg)->codigo_ibge;
+        numOfNodes++;
 
-            if (pnode->item.prox != NULL) {
-                titem *aux = pnode->item.prox;
-                while (aux != NULL) {
-                    ret[numOfNodes] = ((tcidade *)aux->reg)->codigo_ibge;
-                    numOfNodes++;
-                    if (capacity == numOfNodes) {
-                        capacity *= 2;
-                        ret = realloc(ret, sizeof(char *) * capacity);
-                    }
-                    aux = aux->prox;
+        if (pnode->item.prox != NULL) {
+            titem *aux = pnode->item.prox;
+            while (aux != NULL) {
+                ret[numOfNodes] = ((tcidade *)aux->reg)->codigo_ibge;
+                numOfNodes++;
+                if (capacity == numOfNodes) {
+                    capacity *= 2;
+                    ret = realloc(ret, sizeof(char *) * capacity);
                 }
+                aux = aux->prox;
             }
         }
 
